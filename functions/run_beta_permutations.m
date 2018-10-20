@@ -1,6 +1,9 @@
-function variables = run_beta_permutations(parameters, variables, beta_map,handles)
+function [variables, success] = run_beta_permutations(parameters, variables, beta_map,handles)
     % used to be called 'run_beta_PMU2.m' which was the refactoring of run_beta_PMU.m - the original
-   
+    
+    global MAGICNUMBER
+    success=1;
+    
     parameters = ShortenTailString(parameters); % set parameters.tailshort to 'pos','neg', or 'two'
     variables.ori_beta_vals = beta_map(variables.m_idx).'; % Store original observed beta values.
 
@@ -13,11 +16,31 @@ function variables = run_beta_permutations(parameters, variables, beta_map,handl
     % this is because m_idx contains voxels that are included in our analysis (meets minimum lesion cutoff)
     % and l_idx contains all voxels with at least one lesion -- all of those voxels (all l_idx are submitted to the svr analysis).
     % but we only save out m_idx indices, and only perform sorting and pval conversionm etc with those m_idx indices
-    [handles,parameters] = step1(handles,parameters,variables);
-
+    if MAGICNUMBER>0
+        [handles,parameters] = step1(handles,parameters,variables);
+        success = -1;
+        return;
+    end
     %% Calculate the thresholds (indices, whatnot) based on user settings.
+    files = dir([parameters.analysis_out_path filesep '**/pmu_beta_maps_N*.bin']) % previously generated gigantic files in current output dir.
+    parameters.PermNumVoxelwise = numel(files) * parameters.PermNumVoxelwise;
     thresholds = calculate_thresholds(parameters,variables);
 
+    %% ES> create gigantic file. Code borrowed from step1_parallel.m
+    
+    % This is where we'll save our GBs of COMBINED permutation data output...
+    parameters.outfname_big = fullfile(variables.output_folder.clusterwise,['pmu_beta_maps_N_' num2str(parameters.PermNumVoxelwise) '.bin']);
+    fileID = fopen(parameters.outfname_big,'w');
+    
+    for i = 1:numel(files)
+        f=files(i);
+        cur_perm_data = memmapfile(fullfile(f.folder,f.name),'Format','single');
+        fwrite(fileID, cur_perm_data.Data,'single');
+        clear cur_perm_data; % remove memmap from memory.
+    end
+    fclose(fileID); % close big file
+    
+    
     %% Read in gigantic memory mapped file whether we are parallelizing or not
     all_perm_data = memmapfile(parameters.outfname_big,'Format','single');
 

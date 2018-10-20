@@ -1,6 +1,7 @@
 function variables = read_behavior_score(parameters)
     opts = detectImportOptions(parameters.score_file); % addded to support e.g., MAC CSV files 1/31/18
     variables.scorefiledata = readtable(parameters.score_file,opts); 
+    
     %variables.covariates=[]; % placeholder. - we now use covariatestable to support nominal variables
     data = variables.scorefiledata; % shorthand...
     varsToCheck = [parameters.score_name parameters.control_variable_names];
@@ -16,8 +17,7 @@ function variables = read_behavior_score(parameters)
         else % collect the covariate values... 
             % as of 7/6/18, we use .covariatestable to support nominal variables.
             %variables.covariates = [variables.covariates data.(curVarName)]; % append a column
-            %variables.covariatestable = addvars(variables.covariatestable,data.(curVarName),'NewVariableNames',curVarName); 
-            variables.covariatestable.(curVarName) = data.(curVarName); % added this on 9/6/18 to avoid addvars() call which is only available in MATLAB 2018a
+            variables.covariatestable = addvars(variables.covariatestable,data.(curVarName),'NewVariableNames',curVarName);
         end
     end
 

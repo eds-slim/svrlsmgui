@@ -6,6 +6,9 @@ function variables = evaluate_clustering_results(handles,variables,parameters)
     clustervals = load(variables.files_created.largest_clusters);
     sorted_clusters = sort(clustervals.all_max_cluster_sizes);
 
+    parameters.tails
+    handles.options.hypodirection
+    
     switch parameters.tails % we now call apply_clustering_one_tail for all one-tailed analyses.
         case handles.options.hypodirection{1} % Positive tail - high scores bad
             variables = apply_clustering_one_tail(parameters,variables,real_beta_map_vol,sorted_clusters,'pos'); % variables = apply_clustering_pos_tail(parameters,variables,real_beta_map_vol,sorted_clusters);

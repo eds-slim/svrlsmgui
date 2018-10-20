@@ -74,7 +74,6 @@ function [handles,parameters] = step1_parallel(handles,parameters,variables)
         idx = fetchNext(f);
         svrlsm_waitbar(parameters.waitbar,j/njobs) % update waitbar progress...
     end
-    
     %% Now assemble all those individual files from each parfored permutation into one big file that we can memmap
     handles = UpdateProgress(handles,'Consolidating beta map permutation data...',1);
     svrlsm_waitbar(parameters.waitbar,0,'Consolidating beta map permutation data...');
@@ -95,6 +94,7 @@ function [handles,parameters] = step1_parallel(handles,parameters,variables)
 
 
 function parallel_step1_batch_fcn_lessoverhead(tmp)
+    global MAGICNUMBER
     if ~tmp.useLibSVM || tmp.use_mass_univariate % we transfer it as sparse... so we need to full() it for all non-libSVM methods
         tmp.lesiondata = full(tmp.lesiondata); 
     end 
